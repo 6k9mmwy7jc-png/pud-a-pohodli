@@ -3,7 +3,9 @@ import urllib.parse
 import os
 import sys
 import mimetypes
-import cgi
+import io
+import email
+import email.policy
 import re
 import secrets
 from http import cookies
@@ -33,6 +35,15 @@ def slugify(text: str) -> str:
     text = text.lower()
     text = re.sub(r'[^a-z0-9]+', '-', text).strip('-')
     return text or "clanek"
+
+class UploadedFile:
+    def __init__(self, filename, data_bytes):
+        self.filename = filename
+        self._data = data_bytes
+        self.file = io.BytesIO(data_bytes)
+
+    def read(self):
+        return self._data
 
 class CMSRequestHandler(http.server.BaseHTTPRequestHandler):
 
@@ -96,28 +107,31 @@ class CMSRequestHandler(http.server.BaseHTTPRequestHandler):
 
     def parse_form_data(self):
         content_type = self.headers.get("Content-Type", "")
+        length = int(self.headers.get("Content-Length", 0))
+        raw_body = self.rfile.read(length) if length > 0 else b""
+
         if "multipart/form-data" in content_type:
-            form = cgi.FieldStorage(
-                fp=self.rfile,
-                headers=self.headers,
-                environ={
-                    "REQUEST_METHOD": "POST",
-                    "CONTENT_TYPE": content_type,
-                }
+            msg = email.message_from_bytes(
+                f"Content-Type: {content_type}\r\n\r\n".encode("latin1") + raw_body,
+                policy=email.policy.default
             )
             data = {}
             files = {}
-            for key in form.keys():
-                item = form[key]
-                if item.filename:
-                    files[key] = item
-                else:
-                    data[key] = item.value
+            if msg.is_multipart():
+                for part in msg.iter_parts():
+                    name = part.get_param("name", header="content-disposition")
+                    if not name:
+                        continue
+                    filename = part.get_filename()
+                    if filename:
+                        file_bytes = part.get_payload(decode=True) or b""
+                        files[name] = UploadedFile(filename, file_bytes)
+                    else:
+                        payload = part.get_payload(decode=True) or b""
+                        data[name] = payload.decode("utf-8", errors="replace")
             return data, files
         else:
-            length = int(self.headers.get("Content-Length", 0))
-            raw_data = self.rfile.read(length).decode("utf-8")
-            parsed = urllib.parse.parse_qs(raw_data)
+            parsed = urllib.parse.parse_qs(raw_body.decode("utf-8", errors="replace"))
             data = {k: v[0] for k, v in parsed.items()}
             return data, {}
 
