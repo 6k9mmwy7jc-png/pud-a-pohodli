@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: pud-a-pohodli
+    runtime: python
+    buildCommand: "echo 'No build dependencies needed'"
+    startCommand: "python3 app.py"
+    plan: free

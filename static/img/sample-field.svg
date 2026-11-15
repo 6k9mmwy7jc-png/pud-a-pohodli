@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4a5d6e"/>
+      <stop offset="60%" stop-color="#8c977d"/>
+      <stop offset="100%" stop-color="#cbb89d"/>
+    </linearGradient>
+    <linearGradient id="fieldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#846e49"/>
+      <stop offset="100%" stop-color="#3b3222"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#skyGrad)"/>
+  <!-- Horizon hills -->
+  <path d="M0 320 Q 200 280 400 310 T 800 290 L 800 500 L 0 500 Z" fill="#586349" opacity="0.6"/>
+  <path d="M0 350 Q 280 320 500 360 T 800 340 L 800 500 L 0 500 Z" fill="url(#fieldGrad)"/>
+  <!-- Dog silhouette pointing -->
+  <g transform="translate(320, 290) scale(0.65)" fill="#251a14">
+    <!-- Body & Legs -->
+    <path d="M120 70 C160 65, 240 60, 270 95 C280 110, 270 140, 260 160 L280 240 L260 245 L240 180 L180 180 L170 245 L150 240 L160 170 C140 170, 100 160, 90 130 Z"/>
+    <!-- Head pointing forward horizontally -->
+    <path d="M80 120 C70 90, 40 85, 0 80 C10 100, 30 115, 60 125 Z"/>
+    <!-- Upraised tail pointing straight -->
+    <path d="M270 95 C310 90, 360 85, 380 75 C370 85, 330 105, 270 105 Z"/>
+  </g>
+  <!-- Atmospheric overlay -->
+  <rect width="800" height="500" fill="#000" opacity="0.15"/>
+  <text x="40" y="450" fill="#f5f0eb" font-family="system-ui, sans-serif" font-size="28" font-weight="700" letter-spacing="1">POLE &amp; VYSTAVOVÁNÍ</text>
+  <text x="40" y="475" fill="#d8cfc4" font-family="system-ui, sans-serif" font-size="16">Pudlpointer v pevném bodu na podzimním poli</text>
+</svg>

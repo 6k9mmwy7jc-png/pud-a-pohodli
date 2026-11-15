@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="portGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1f2620"/>
+      <stop offset="100%" stop-color="#111512"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#portGrad)"/>
+  <!-- Portrait silhouette with wirehaired beard / eyebrows -->
+  <g transform="translate(350, 100) scale(0.9)" fill="#3d2d1f">
+    <!-- Skull -->
+    <path d="M-40 120 C-50 40, 20 10, 80 20 C120 25, 150 70, 160 110 C180 150, 210 180, 240 210 C210 230, 170 230, 130 220 L110 320 L0 320 L-20 230 Z"/>
+    <!-- Wirehair beard & brows details -->
+    <path d="M160 210 Q 180 245 150 260 Q 140 230 140 210 Z" fill="#543e2c"/>
+    <path d="M120 210 Q 130 255 100 270 Q 95 235 110 210 Z" fill="#543e2c"/>
+    <path d="M70 60 Q 90 40 110 65 Z" fill="#543e2c"/>
+    <!-- Amber Eye -->
+    <ellipse cx="90" cy="90" rx="12" ry="9" fill="#c48a3f"/>
+    <circle cx="90" cy="90" r="5" fill="#111111"/>
+    <!-- Dark nose -->
+    <ellipse cx="225" cy="205" rx="15" ry="12" fill="#1a1410"/>
+  </g>
+  <text x="40" y="440" fill="#f5f0eb" font-family="system-ui, sans-serif" font-size="28" font-weight="700" letter-spacing="1">EXTERIÉR &amp; VÝRAZ</text>
+  <text x="40" y="468" fill="#d8cfc4" font-family="system-ui, sans-serif" font-size="16">Drsná srst, výrazný vous a jantarové oko plné soustředění</text>
+</svg>
