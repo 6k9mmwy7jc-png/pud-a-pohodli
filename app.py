@@ -451,6 +451,17 @@ class CMSRequestHandler(http.server.BaseHTTPRequestHandler):
                     f.write(file_item.file.read())
                 cover_image = f"/uploads/{filename}"
 
+            video_url = data.get("video_url", "").strip()
+            if "video_file" in files and files["video_file"].filename:
+                file_item = files["video_file"]
+                ext = os.path.splitext(file_item.filename)[1].lower()
+                if ext in [".mp4", ".mov", ".webm", ".m4v"]:
+                    filename = f"video_{int(datetime.now().timestamp())}_{secrets.token_hex(4)}{ext}"
+                    target_path = os.path.join(UPLOADS_DIR, filename)
+                    with open(target_path, "wb") as f:
+                        f.write(file_item.file.read())
+                    video_url = f"/uploads/{filename}"
+
             conn = database.get_connection()
             c = conn.cursor()
             # Ensure unique slug
@@ -459,9 +470,9 @@ class CMSRequestHandler(http.server.BaseHTTPRequestHandler):
                 slug = f"{slug}-{int(datetime.now().timestamp()) % 1000}"
 
             c.execute("""
-                INSERT INTO articles (title, slug, subtitle, cover_image, summary, content, tags, is_published, author_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (title, slug, subtitle, cover_image, summary, content, tags, is_published, user["id"]))
+                INSERT INTO articles (title, slug, subtitle, cover_image, summary, content, tags, is_published, video_url, author_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (title, slug, subtitle, cover_image, summary, content, tags, is_published, video_url, user["id"]))
             conn.commit()
             conn.close()
 
@@ -483,6 +494,7 @@ class CMSRequestHandler(http.server.BaseHTTPRequestHandler):
             tags = data.get("tags", "").strip()
             is_published = 1 if data.get("is_published") else 0
             cover_image = data.get("cover_image", "").strip()
+            video_url = data.get("video_url", "").strip()
 
             if "cover_file" in files and files["cover_file"].filename:
                 file_item = files["cover_file"]
@@ -493,13 +505,23 @@ class CMSRequestHandler(http.server.BaseHTTPRequestHandler):
                     f.write(file_item.file.read())
                 cover_image = f"/uploads/{filename}"
 
+            if "video_file" in files and files["video_file"].filename:
+                file_item = files["video_file"]
+                ext = os.path.splitext(file_item.filename)[1].lower()
+                if ext in [".mp4", ".mov", ".webm", ".m4v"]:
+                    filename = f"video_{int(datetime.now().timestamp())}_{secrets.token_hex(4)}{ext}"
+                    target_path = os.path.join(UPLOADS_DIR, filename)
+                    with open(target_path, "wb") as f:
+                        f.write(file_item.file.read())
+                    video_url = f"/uploads/{filename}"
+
             conn = database.get_connection()
             c = conn.cursor()
             c.execute("""
                 UPDATE articles 
-                SET title = ?, slug = ?, subtitle = ?, cover_image = ?, summary = ?, content = ?, tags = ?, is_published = ?, updated_at = CURRENT_TIMESTAMP
+                SET title = ?, slug = ?, subtitle = ?, cover_image = ?, summary = ?, content = ?, tags = ?, is_published = ?, video_url = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
-            """, (title, slug, subtitle, cover_image, summary, content, tags, is_published, art_id))
+            """, (title, slug, subtitle, cover_image, summary, content, tags, is_published, video_url, art_id))
             conn.commit()
             conn.close()
 

@@ -58,12 +58,18 @@ def init_db():
         content TEXT NOT NULL,
         tags TEXT DEFAULT '',
         is_published INTEGER DEFAULT 1,
+        video_url TEXT DEFAULT '',
         author_id INTEGER,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (author_id) REFERENCES users (id)
     );
     """)
+
+    try:
+        c.execute("ALTER TABLE articles ADD COLUMN video_url TEXT DEFAULT ''")
+    except sqlite3.OperationalError:
+        pass
 
     c.execute("""
     CREATE TABLE IF NOT EXISTS gallery (

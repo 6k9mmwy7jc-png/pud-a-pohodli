@@ -1,4 +1,5 @@
 import html
+import re
 from datetime import datetime
 
 def format_date(date_str):
@@ -900,6 +901,8 @@ def render_home_page(settings: dict, articles: list, gallery: list) -> str:
     articles_html = ""
     for art in articles[:3]:
         cover = art["cover_image"] or "/static/img/sample-field.svg"
+        has_video = bool(art.get("video_url"))
+        video_badge = '<span style="background:rgba(239, 68, 68, 0.2); color:#fca5a5; border:1px solid rgba(239, 68, 68, 0.4); padding:1px 6px; border-radius:4px; font-size:0.72rem; font-weight:700; margin-left:auto;">▶ Video</span>' if has_video else ''
         articles_html += f"""
         <article class="article-card">
             <div class="article-img-wrap">
@@ -910,6 +913,7 @@ def render_home_page(settings: dict, articles: list, gallery: list) -> str:
                     <span class="article-tag">{html.escape(art['tags'].split(',')[0] if art['tags'] else 'Článek')}</span>
                     <span>•</span>
                     <span>{format_date(art['created_at'])}</span>
+                    {video_badge}
                 </div>
                 <h3 class="article-title">{html.escape(art['title'])}</h3>
                 <p class="article-summary">{html.escape(art['summary'])}</p>
@@ -1185,6 +1189,8 @@ def render_articles_list(articles: list) -> str:
     cards = ""
     for art in articles:
         cover = art["cover_image"] or "/static/img/sample-field.svg"
+        has_video = bool(art.get("video_url"))
+        video_badge = '<span style="background:rgba(239, 68, 68, 0.2); color:#fca5a5; border:1px solid rgba(239, 68, 68, 0.4); padding:1px 6px; border-radius:4px; font-size:0.72rem; font-weight:700; margin-left:auto;">▶ Video</span>' if has_video else ''
         cards += f"""
         <article class="article-card">
             <div class="article-img-wrap">
@@ -1195,6 +1201,7 @@ def render_articles_list(articles: list) -> str:
                     <span class="article-tag">{html.escape(art['tags'].split(',')[0] if art['tags'] else 'Článek')}</span>
                     <span>•</span>
                     <span>{format_date(art['created_at'])}</span>
+                    {video_badge}
                 </div>
                 <h3 class="article-title">{html.escape(art['title'])}</h3>
                 <p class="article-summary">{html.escape(art['summary'])}</p>
@@ -1220,6 +1227,50 @@ def render_articles_list(articles: list) -> str:
     </div>
     """
 
+def render_video_player(url: str) -> str:
+    if not url:
+        return ""
+    url = url.strip()
+    # YouTube
+    yt_patterns = [
+        r'(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)',
+        r'(?:https?:\/\/)?(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]+)',
+        r'(?:https?:\/\/)?(?:www\.)?youtube\.com\/shorts\/([a-zA-Z0-9_-]+)',
+        r'(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([a-zA-Z0-9_-]+)'
+    ]
+    for p in yt_patterns:
+        m = re.search(p, url)
+        if m:
+            yt_id = m.group(1)
+            return f'''
+            <div style="max-width:900px; margin:0 auto 3rem;">
+                <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:12px; border:1px solid var(--border); box-shadow:0 8px 24px rgba(0,0,0,0.5);">
+                    <iframe src="https://www.youtube.com/embed/{yt_id}" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                </div>
+            </div>
+            '''
+    # Vimeo
+    vimeo_match = re.search(r'(?:https?:\/\/)?(?:www\.)?vimeo\.com\/([0-9]+)', url)
+    if vimeo_match:
+        v_id = vimeo_match.group(1)
+        return f'''
+        <div style="max-width:900px; margin:0 auto 3rem;">
+            <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:12px; border:1px solid var(--border); box-shadow:0 8px 24px rgba(0,0,0,0.5);">
+                <iframe src="https://player.vimeo.com/video/{v_id}" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe>
+            </div>
+        </div>
+        '''
+    # Direct HTML5 video file
+    url_esc = html.escape(url)
+    return f'''
+    <div style="max-width:900px; margin:0 auto 3rem; border-radius:12px; overflow:hidden; border:1px solid var(--border); background:#000; box-shadow:0 8px 24px rgba(0,0,0,0.5);">
+        <video controls playsinline style="width:100%; display:block; max-height:550px;">
+            <source src="{url_esc}">
+            Váš prohlížeč nepodporuje přehrávání videa.
+        </video>
+    </div>
+    '''
+
 def render_article_detail(art: dict) -> str:
     cover_html = ""
     if art["cover_image"]:
@@ -1228,6 +1279,8 @@ def render_article_detail(art: dict) -> str:
             <img src="{html.escape(art['cover_image'])}" alt="{html.escape(art['title'])}" style="width:100%; height:100%; object-fit:cover;">
         </div>
         """
+
+    video_html = render_video_player(art.get("video_url", ""))
 
     return f"""
     <article>
@@ -1247,6 +1300,7 @@ def render_article_detail(art: dict) -> str:
 
         <div class="container">
             {cover_html}
+            {video_html}
             <div class="article-full-content">
                 {art['content']}
             </div>
@@ -1519,6 +1573,7 @@ def render_admin_article_form(article: dict = None) -> str:
     content = article["content"] if is_edit else ""
     tags = article["tags"] if is_edit else ""
     cover_image = article["cover_image"] if is_edit else ""
+    video_url = article["video_url"] if (is_edit and "video_url" in article and article["video_url"]) else ""
     is_published = article["is_published"] if is_edit else 1
     art_id = article["id"] if is_edit else ""
 
@@ -1563,6 +1618,21 @@ def render_admin_article_form(article: dict = None) -> str:
                 <input type="file" name="cover_file" class="form-input" accept="image/*">
                 <div class="form-hint">Nebo zadejte přímou URL adresu obrázku:</div>
                 <input type="text" name="cover_image" class="form-input" style="margin-top:0.4rem;" value="{html.escape(cover_image)}" placeholder="/static/img/sample-field.svg nebo https://...">
+            </div>
+
+            <div class="form-group" style="background:var(--bg-input); padding:1.2rem; border-radius:8px; border:1px solid var(--border);">
+                <label class="form-label" style="display:flex; align-items:center; gap:8px;">
+                    <span style="color:var(--accent);">🎬 Video k článku (YouTube / Vimeo / MP4)</span>
+                </label>
+                {f'<div style="margin-bottom:0.5rem; font-size:0.85rem; color:var(--accent);">Aktuální video: {html.escape(video_url)}</div>' if video_url else ''}
+                <div class="form-hint" style="margin-bottom:0.6rem;">
+                    Vložte odkaz na <strong>YouTube</strong> (včetně Shorts), <strong>Vimeo</strong>, nebo přímý odkaz na MP4 video:
+                </div>
+                <input type="text" name="video_url" class="form-input" value="{html.escape(video_url)}" placeholder="https://www.youtube.com/watch?v=... nebo https://youtu.be/...">
+                <div style="margin-top:0.8rem;">
+                    <label class="form-label" style="font-size:0.85rem;">Nebo nahrajte video soubor přímo ze zařízení (MP4, MOV, WEBM):</label>
+                    <input type="file" name="video_file" class="form-input" accept="video/mp4,video/quicktime,video/webm">
+                </div>
             </div>
 
             <div class="form-group">
